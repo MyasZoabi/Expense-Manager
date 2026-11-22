@@ -1,10 +1,16 @@
 #include "ExpenseManager.h"
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 using namespace std;
 
-void ExpenseManager::addExpense(const Expense& expense) {
+bool ExpenseManager::addExpense(const Expense& expense) {
+    if (expense.getAmount() <= 0) {
+        return false;
+}
+
     expenses.push_back(expense);
+    return true;
 }
 
 void ExpenseManager::showExpenses() const {
@@ -44,8 +50,8 @@ void ExpenseManager::showByCategory(const string& category) const {
 }
 }
 
-    if (!found) {
-        cout << "No expenses found in this category.\n";
+if (!found) {
+    cout << "No expenses found in this category.\n";
 }
 }
 
@@ -68,9 +74,12 @@ bool ExpenseManager::editExpense(
     double newAmount,
     const string& newCategory
 ) {
-    if (index < 1 || index > expenses.size()) {
+if (index < 1 || index > expenses.size()) {
         return false;
-    }
+}
+if (newAmount <= 0) {
+        return false;
+}
 
     Expense& expense = expenses[index - 1];
 
@@ -83,35 +92,60 @@ bool ExpenseManager::editExpense(
 void ExpenseManager::saveToFile(const string& filename) const {
     ofstream file(filename);
 
-    for (const Expense& expense : expenses) {
-        file << expense.getName() << "|"
-             << expense.getAmount() << "|"
-             << expense.getCategory() << "\n";
+for (const Expense& expense : expenses) {
+    file << expense.getName() << "|"
+            << expense.getAmount() << "|"
+            << expense.getCategory() << "\n";
 }
 }
 void ExpenseManager::loadFromFile(const string& filename) {
     ifstream file(filename);
 
-    if (!file.is_open()) {
+if (!file.is_open()) {
         return;
 }
+
     string name;
     string amountText;
     string category;
 
-    while (getline(file, name, '|')) {
+while (getline(file, name, '|')) {
         getline(file, amountText, '|');
         getline(file, category);
 
-        double amount = stod(amountText);
+try {
+    double amount = stod(amountText);
 
-        Expense expense(name, amount, category);
-        expenses.push_back(expense);
+    Expense expense(name, amount, category);
+    expenses.push_back(expense);
+}
+catch (...) {
+    continue;
+}
 }
 }
 int ExpenseManager::getExpenseCount() const {
     return expenses.size();
 }
 const Expense& ExpenseManager::getExpense(int index) const {
-    return expenses[index];
+    return expenses.at(index);
+}
+
+void ExpenseManager::sortByAmountAscending() {
+    std::sort(
+        expenses.begin(),
+        expenses.end(),
+        [](const Expense& a, const Expense& b) {
+            return a.getAmount() < b.getAmount();
+        }
+    );
+}
+void ExpenseManager::sortByAmountDescending() {
+    std::sort(
+        expenses.begin(),
+        expenses.end(),
+        [](const Expense& a, const Expense& b) {
+            return a.getAmount() > b.getAmount();
+        }
+    );
 }

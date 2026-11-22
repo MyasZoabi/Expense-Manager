@@ -15,7 +15,7 @@ void ConsoleUI::run() {
     string category;
     int choice = 0;
 
-while (choice != 7) {
+while (choice != 8) {
 
     cout << "\n--- Expense Manager ---\n";
     cout << "1. Add Expense\n";
@@ -24,7 +24,8 @@ while (choice != 7) {
     cout << "4. Show Expenses by Category\n";
     cout << "5. Delete Expense\n";
     cout << "6. Edit Expense\n";
-    cout << "7. Exit\n";
+    cout << "7. Sort Expenses by Amount\n";
+    cout << "8. Exit\n";
     cout << "Enter your choice: ";
 
     cin >> choice;
@@ -55,8 +56,12 @@ cin.ignore(numeric_limits<streamsize>::max(),'\n');
         getline(cin, category);
 
 Expense expense(name, amount, category);
-manager.addExpense(expense);
-cout << "Expense added successfully!\n";
+if (manager.addExpense(expense)) {
+    cout << "Expense added successfully!\n";
+}
+else {
+    cout << "Invalid expense amount.\n";
+}
 }  
 
 // 2. Show Expenses
@@ -129,6 +134,10 @@ if (cin.fail()) {
     cout << "Invalid amount!\n";
     continue;
 }
+if (amount <= 0) {
+    cout << "Amount must be greater than 0.\n";
+    continue;
+}
 cin.ignore(numeric_limits<streamsize>::max(), '\n');
 cout << "Enter new category: ";
 getline(cin, category);
@@ -140,8 +149,43 @@ else {
     cout << "Invalid expense number.\n";
 }
 }
-// 7. Exit
 else if (choice == 7) {
+    if (manager.isEmpty()) {
+        cout << "No expenses to sort.\n";
+        continue;
+}
+
+int sortChoice;
+
+    cout << "1. Lowest to highest\n";
+    cout << "2. Highest to lowest\n";
+    cout << "Choose sorting order: ";
+
+    cin >> sortChoice;
+
+if (cin.fail()) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid choice!\n";
+        continue;
+}
+
+if (sortChoice == 1) {
+        manager.sortByAmountAscending();
+        cout << "Expenses sorted from lowest to highest.\n";
+        manager.showExpenses();
+}
+else if (sortChoice == 2) {
+        manager.sortByAmountDescending();
+        cout << "Expenses sorted from highest to lowest.\n";
+        manager.showExpenses();
+}
+else {
+        cout << "Invalid sorting option.\n";
+}
+}
+// 8. Exit
+else if (choice == 8) {
     cout << "Goodbye!\n";
 }
 // Invalid number

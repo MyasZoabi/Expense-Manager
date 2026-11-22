@@ -12,7 +12,7 @@ private:
     vector<Expense> expenses;
 
 public:
-    void addExpense(const Expense& expense);
+    bool addExpense(const Expense& expense);
 
     void showExpenses() const;
 
@@ -34,6 +34,8 @@ void saveToFile(const string& filename) const;
 void loadFromFile(const string& filename);
 int getExpenseCount() const;
 const Expense& getExpense(int index) const;
+void sortByAmountAscending();
+void sortByAmountDescending();
 };
 
 #endif

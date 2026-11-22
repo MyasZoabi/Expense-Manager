@@ -1,147 +1,254 @@
-#include <iostream>
+#include <catch2/catch_test_macros.hpp>
+
 #include "ExpenseManager.h"
+
+#include <fstream>
 #include <cstdio>
-using namespace std;
+#include <stdexcept>
 
-int passed = 0;
-int failed = 0;
 
-// General pattern for all Tests (Testing Framework)
-void check(bool condition, const string& testName) {
-if (condition) {
-    cout << "Test passed: " << testName << "\n";
-    passed++;
-}
-else {
-    cout << "Test failed: " << testName << "\n";
-    failed++;
-}
-}
-
-int main() {
-// Add Expense Test
+TEST_CASE("ExpenseManager calculates total") {
     ExpenseManager manager;
-    Expense expense1("Coffee", 3.50, "Food");
-    Expense expense2("Train", 15.00, "Transport");
 
-    manager.addExpense(expense1);
-    manager.addExpense(expense2);
-    check(manager.getTotal() == 18.50, "getTotal()");
+    manager.addExpense(
+        Expense("Coffee", 3.50, "Food")
+    );
 
-// Empty Test
-ExpenseManager emptyManager;
-check(emptyManager.isEmpty(), "isEmpty()");
+    manager.addExpense(
+        Expense("Train", 15.00, "Transport")
+    );
 
-// Delete Expense Test
-ExpenseManager deleteManager;
-deleteManager.addExpense(Expense("Coffee", 3.50, "Food"));
-deleteManager.addExpense(Expense("Train", 15.00, "Transport"));
-
-deleteManager.deleteExpense(1);
-
-check(
-    deleteManager.getExpenseCount() == 1,
-    "deleteExpense()"
-);
-
-// Edit Expense Test
-ExpenseManager editManager;
-editManager.addExpense(
-    Expense("Coffee", 3.50, "Food")
-);
-
-editManager.editExpense(
-    1,
-    "Cappuccino",
-    4.50,
-    "Cafe"
-);
-
-const Expense& expense = editManager.getExpense(0);
-
-check(
-    expense.getName() == "Cappuccino" &&
-    expense.getAmount() == 4.50 &&
-    expense.getCategory() == "Cafe",
-    "editExpense() updates all fields"
-);
-// passed and failed Tests count 
-cout << "\nTest Summary: \n";
-cout << "Passed: " << passed << "\n";
-cout << "Failed: " << failed << "\n";
- 
-if (failed > 0) {
-    return 1;
+    REQUIRE(manager.getTotal() == 18.50);
 }
 
-ExpenseManager invalidDeleteManager;
 
-invalidDeleteManager.addExpense(
-    Expense("Coffee", 3.50, "Food")
-);
+TEST_CASE("New ExpenseManager is empty") {
+    ExpenseManager manager;
 
-bool deleted = invalidDeleteManager.deleteExpense(5);
+    REQUIRE(manager.isEmpty());
+}
 
-check(
-    deleted == false &&
-    invalidDeleteManager.getExpenseCount() == 1,
-    "deleteExpense() rejects invalid index"
-);
 
-ExpenseManager invalidEditManager;
+TEST_CASE("ExpenseManager deletes an expense") {
+    ExpenseManager manager;
 
-invalidEditManager.addExpense(
-    Expense("Coffee", 3.50, "Food")
-);
+    manager.addExpense(
+        Expense("Coffee", 3.50, "Food")
+    );
 
-bool edited = invalidEditManager.editExpense(
-    5,
-    "Tea",
-    4.00,
-    "Drinks"
-);
+    manager.addExpense(
+        Expense("Train", 15.00, "Transport")
+    );
 
-check(
-    edited == false &&
-    invalidEditManager.getExpense(0).getName() == "Coffee",
-    "editExpense() rejects invalid index"
-);
+    REQUIRE(manager.deleteExpense(1));
+    REQUIRE(manager.getExpenseCount() == 1);
+}
 
-ExpenseManager saveManager;
 
-saveManager.addExpense(
-    Expense("Coffee", 3.50, "Food")
-);
+TEST_CASE("deleteExpense rejects invalid index") {
+    ExpenseManager manager;
 
-saveManager.addExpense(
-    Expense("Train", 15.00, "Transport")
-);
+    manager.addExpense(
+        Expense("Coffee", 3.50, "Food")
+    );
 
-saveManager.saveToFile("test_expenses.txt");
-   
-ExpenseManager loadManager;
-loadManager.loadFromFile("test_expenses.txt");
+    REQUIRE_FALSE(manager.deleteExpense(5));
+    REQUIRE(manager.getExpenseCount() == 1);
+}
 
-check(
-    loadManager.getExpenseCount() == 2,
-    "loadFromFile() restores expense count"
-);
 
-check(
-    loadManager.getExpense(0).getName() == "Coffee" &&
-    loadManager.getExpense(0).getAmount() == 3.50 &&
-    loadManager.getExpense(0).getCategory() == "Food",
-    "save/load preserves first expense"
-);
+TEST_CASE("editExpense updates all fields") {
+    ExpenseManager manager;
 
-check(
-    loadManager.getExpense(1).getName() == "Train" &&
-    loadManager.getExpense(1).getAmount() == 15.00 &&
-    loadManager.getExpense(1).getCategory() == "Transport",
-    "save/load preserves second expense"
-);
+    manager.addExpense(
+        Expense("Coffee", 3.50, "Food")
+    );
 
-remove("test_expenses.txt");
+    REQUIRE(
+        manager.editExpense(
+            1,
+            "Cappuccino",
+            4.50,
+            "Cafe"
+        )
+    );
 
-return 0;
+    const Expense& expense = manager.getExpense(0);
+
+    REQUIRE(expense.getName() == "Cappuccino");
+    REQUIRE(expense.getAmount() == 4.50);
+    REQUIRE(expense.getCategory() == "Cafe");
+}
+
+
+TEST_CASE("editExpense rejects invalid index") {
+    ExpenseManager manager;
+
+    manager.addExpense(
+        Expense("Coffee", 3.50, "Food")
+    );
+
+    REQUIRE_FALSE(
+        manager.editExpense(
+            5,
+            "Tea",
+            4.00,
+            "Drinks"
+        )
+    );
+
+    REQUIRE(
+        manager.getExpense(0).getName() == "Coffee"
+    );
+}
+
+
+TEST_CASE("ExpenseManager saves and loads expenses") {
+    ExpenseManager saveManager;
+
+    saveManager.addExpense(
+        Expense("Coffee", 3.50, "Food")
+    );
+
+    saveManager.addExpense(
+        Expense("Train", 15.00, "Transport")
+    );
+
+    saveManager.saveToFile("test_expenses.txt");
+
+
+    ExpenseManager loadManager;
+
+    loadManager.loadFromFile("test_expenses.txt");
+
+
+    REQUIRE(loadManager.getExpenseCount() == 2);
+
+    REQUIRE(
+        loadManager.getExpense(0).getName() == "Coffee"
+    );
+
+    REQUIRE(
+        loadManager.getExpense(0).getAmount() == 3.50
+    );
+
+    REQUIRE(
+        loadManager.getExpense(0).getCategory() == "Food"
+    );
+
+    REQUIRE(
+        loadManager.getExpense(1).getName() == "Train"
+    );
+
+    REQUIRE(
+        loadManager.getExpense(1).getAmount() == 15.00
+    );
+
+    REQUIRE(
+        loadManager.getExpense(1).getCategory() == "Transport"
+    );
+
+
+    remove("test_expenses.txt");
+}
+
+
+TEST_CASE("loadFromFile skips malformed amount") {
+    {
+        std::ofstream file("bad_expenses.txt");
+
+        file << "Coffee|3.5|Food\n";
+        file << "Broken|abc|Other\n";
+    }
+
+
+    ExpenseManager manager;
+
+    manager.loadFromFile("bad_expenses.txt");
+
+
+    REQUIRE(manager.getExpenseCount() == 1);
+
+    REQUIRE(
+        manager.getExpense(0).getName() == "Coffee"
+    );
+
+
+    remove("bad_expenses.txt");
+}
+
+
+TEST_CASE("addExpense rejects non-positive amount") {
+    ExpenseManager manager;
+
+    bool added = manager.addExpense(
+        Expense("Invalid", -10, "Other")
+    );
+
+    REQUIRE_FALSE(added);
+    REQUIRE(manager.getExpenseCount() == 0);
+}
+
+
+TEST_CASE("editExpense rejects non-positive amount") {
+    ExpenseManager manager;
+
+    manager.addExpense(
+        Expense("Coffee", 3.50, "Food")
+    );
+
+    bool edited = manager.editExpense(
+        1,
+        "Coffee",
+        -5.00,
+        "Food"
+    );
+
+    REQUIRE_FALSE(edited);
+
+    REQUIRE(
+        manager.getExpense(0).getAmount() == 3.50
+    );
+}
+
+
+TEST_CASE("getExpense throws for invalid index") {
+    ExpenseManager manager;
+
+    manager.addExpense(
+        Expense("Coffee", 3.50, "Food")
+    );
+
+    REQUIRE_THROWS_AS(
+        manager.getExpense(5),
+        std::out_of_range
+    );
+}
+
+TEST_CASE("sortByAmountAscending sorts expenses from lowest to highest") {
+    ExpenseManager manager;
+
+    manager.addExpense(Expense("Train", 15.00, "Transport"));
+    manager.addExpense(Expense("Coffee", 3.50, "Food"));
+    manager.addExpense(Expense("Lunch", 10.00, "Food"));
+
+    manager.sortByAmountAscending();
+
+    REQUIRE(manager.getExpense(0).getAmount() == 3.50);
+    REQUIRE(manager.getExpense(1).getAmount() == 10.00);
+    REQUIRE(manager.getExpense(2).getAmount() == 15.00);
+}
+
+TEST_CASE("sortByAmountDescending sorts expenses from highest to lowest") {
+    ExpenseManager manager;
+
+    manager.addExpense(Expense("Train", 15.00, "Transport"));
+    manager.addExpense(Expense("Coffee", 3.50, "Food"));
+    manager.addExpense(Expense("Lunch", 10.00, "Food"));
+
+    manager.sortByAmountDescending();
+
+    REQUIRE(manager.getExpense(0).getAmount() == 15.00);
+    REQUIRE(manager.getExpense(1).getAmount() == 10.00);
+    REQUIRE(manager.getExpense(2).getAmount() == 3.50);
 }
