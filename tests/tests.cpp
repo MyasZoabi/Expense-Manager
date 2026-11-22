@@ -1,5 +1,6 @@
 #include <iostream>
 #include "ExpenseManager.h"
+#include <cstdio>
 using namespace std;
 
 int passed = 0;
@@ -72,5 +73,75 @@ cout << "Failed: " << failed << "\n";
 if (failed > 0) {
     return 1;
 }
-   return 0;
+
+ExpenseManager invalidDeleteManager;
+
+invalidDeleteManager.addExpense(
+    Expense("Coffee", 3.50, "Food")
+);
+
+bool deleted = invalidDeleteManager.deleteExpense(5);
+
+check(
+    deleted == false &&
+    invalidDeleteManager.getExpenseCount() == 1,
+    "deleteExpense() rejects invalid index"
+);
+
+ExpenseManager invalidEditManager;
+
+invalidEditManager.addExpense(
+    Expense("Coffee", 3.50, "Food")
+);
+
+bool edited = invalidEditManager.editExpense(
+    5,
+    "Tea",
+    4.00,
+    "Drinks"
+);
+
+check(
+    edited == false &&
+    invalidEditManager.getExpense(0).getName() == "Coffee",
+    "editExpense() rejects invalid index"
+);
+
+ExpenseManager saveManager;
+
+saveManager.addExpense(
+    Expense("Coffee", 3.50, "Food")
+);
+
+saveManager.addExpense(
+    Expense("Train", 15.00, "Transport")
+);
+
+saveManager.saveToFile("test_expenses.txt");
+   
+ExpenseManager loadManager;
+loadManager.loadFromFile("test_expenses.txt");
+
+check(
+    loadManager.getExpenseCount() == 2,
+    "loadFromFile() restores expense count"
+);
+
+check(
+    loadManager.getExpense(0).getName() == "Coffee" &&
+    loadManager.getExpense(0).getAmount() == 3.50 &&
+    loadManager.getExpense(0).getCategory() == "Food",
+    "save/load preserves first expense"
+);
+
+check(
+    loadManager.getExpense(1).getName() == "Train" &&
+    loadManager.getExpense(1).getAmount() == 15.00 &&
+    loadManager.getExpense(1).getCategory() == "Transport",
+    "save/load preserves second expense"
+);
+
+remove("test_expenses.txt");
+
+return 0;
 }

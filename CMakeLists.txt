@@ -5,22 +5,25 @@ project(ExpenseManager)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Main application
+include_directories(include)
+
 add_executable(
     expense_manager
-    main.cpp
-    Expense.cpp
-    ExpenseManager.cpp
+    src/main.cpp
+    src/Expense.cpp
+    src/ExpenseManager.cpp
+    src/ConsoleUI.cpp
 )
-# Tests
+
 add_executable(
     tests
-    tests.cpp
-    Expense.cpp
-    ExpenseManager.cpp
+    tests/tests.cpp
+    src/Expense.cpp
+    src/ExpenseManager.cpp
 )
 
 enable_testing()
+
 add_test(
     NAME ExpenseManagerTests
     COMMAND tests

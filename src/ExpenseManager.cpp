@@ -49,31 +49,28 @@ void ExpenseManager::showByCategory(const string& category) const {
 }
 }
 
-void ExpenseManager::deleteExpense(int index) {
+bool ExpenseManager::deleteExpense(int index) {
     if (index < 1 || index > expenses.size()) {
-        cout << "Invalid expense number.\n";
-        return;
-}
+        return false;
+    }
 
     expenses.erase(expenses.begin() + (index - 1));
-
-    cout << "Expense deleted successfully!\n";
+    return true;
 }
 
 bool ExpenseManager::isEmpty() const {
     return expenses.empty();
 }
 
-void ExpenseManager::editExpense(
+bool ExpenseManager::editExpense(
     int index,
     const string& newName,
     double newAmount,
     const string& newCategory
 ) {
     if (index < 1 || index > expenses.size()) {
-        cout << "Invalid expense number.\n";
-        return;
-}
+        return false;
+    }
 
     Expense& expense = expenses[index - 1];
 
@@ -81,7 +78,7 @@ void ExpenseManager::editExpense(
     expense.setAmount(newAmount);
     expense.setCategory(newCategory);
 
-    cout << "Expense updated successfully!\n";
+    return true;
 }
 void ExpenseManager::saveToFile(const string& filename) const {
     ofstream file(filename);

@@ -1,19 +1,19 @@
+#include "ConsoleUI.h"
 #include <iostream>
 #include <string>
 #include <limits>
-#include "ExpenseManager.h"
+
 using namespace std;
 
-// Main
-int main() {
+ConsoleUI::ConsoleUI(ExpenseManager& manager)
+    : manager(manager) {
+}
 
-ExpenseManager manager;
-manager.loadFromFile("expenses.txt");
-        string name;
-        double amount;
-        string category;
-        int choice = 0;
-
+void ConsoleUI::run() {
+    string name;
+    double amount;
+    string category;
+    int choice = 0;
 
 while (choice != 7) {
 
@@ -28,15 +28,13 @@ while (choice != 7) {
     cout << "Enter your choice: ";
 
     cin >> choice;
-
-// Validate menu input
 if (cin.fail()) {
     cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(),'\n');
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
     cout << "Invalid choice!\n";
     continue;
 }
- // 1. Add Expense
+// 1. Add Expense
 if (choice == 1) {
  cin.ignore(numeric_limits<streamsize>::max(),'\n');
     cout << "Enter expense name: ";
@@ -95,7 +93,12 @@ if (cin.fail()) {
     cout << "Invalid number!\n";
     continue;
 }
-    manager.deleteExpense(index);
+if (manager.deleteExpense(index)) {
+    cout << "Expense deleted successfully!\n";
+}
+else {
+    cout << "Invalid expense number.\n";
+}
 }
 // 6. Edit Expense choice
 else if (choice == 6){
@@ -129,7 +132,13 @@ if (cin.fail()) {
 cin.ignore(numeric_limits<streamsize>::max(), '\n');
 cout << "Enter new category: ";
 getline(cin, category);
-manager.editExpense(index, name, amount, category);
+
+if (manager.editExpense(index, name, amount, category)) {
+    cout << "Expense updated successfully!\n";
+}
+else {
+    cout << "Invalid expense number.\n";
+}
 }
 // 7. Exit
 else if (choice == 7) {
@@ -140,6 +149,7 @@ else {
     cout << "Invalid choice!\n";
 }
 }
-manager.saveToFile("expenses.txt");
-    return 0;
-}
+
+    return ;
+}      
+

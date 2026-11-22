@@ -20,11 +20,11 @@ public:
 
     void showByCategory(const string& category) const;
 
-    void deleteExpense(int index);
+    bool deleteExpense(int index);
 
     bool isEmpty() const;
 
-    void editExpense(
+    bool editExpense(
         int index,
         const string& newName,
         double newAmount,
